@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<meta charset=utf-8>
+<title>philee - design & strategy studio</title>
+<style>
+    * { margin:0; padding:0; }
+    html, body { width:100%; height:100%; overflow:hidden;touch-action: manipulation;}
+    canvas { display: block;
+        position:absolute;
+	margin:auto;
+        -webkit-touch-callout:none;                /* prevent callout to copy image, etc when tap to hold */
+    -webkit-text-size-adjust:none;             /* prevent webkit from resizing text to fit */
+    -webkit-tap-highlight-color:rgba(0,0,0,0); /* prevent tap highlight color / shadow */
+    -webkit-user-select:none;                  /* prevent copy paste, to allow, change 'none' to 'text' */
+    touch-action: manipulation;
+
+     }
+
+    
+    
+</style>
+<meta name="viewport" content="initial-scale=1, maximum-scale=1">
+<script src="https://code.createjs.com/createjs-2015.11.26.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.touchswipe/1.6.18/jquery.touchSwipe.min.js"></script>
+<script src="index.js"></script>
+<script src="MenuOverlay.js"></script>
+<script src="Services.js"></script>
+<script src="contact.js"></script>
+
+
+
+<body style="background-color:rgba(255, 204, 204, 1.00);">
+<canvas id="canvas" width="100%" height="100%" style="display:block;"></canvas>
+<canvas id="canvasMenu" width="100%" height="100%" style="display:block;"></canvas>
+<script>
+
+ 
+// Get and modify the canvas element as needed.
+var canvas = document.getElementById("canvas");
+
+
+$( window ).on( "orientationchange", function( event ) {
+  setTimeout(resize,200);
+});
+
+
+window.transitionIn = false;
+
+window.moveToOverlayMenu = moveToOverlayMenu;
+
+function moveToOverlayMenu()
+{
+    var comp=AdobeAn.getComposition("1CBFFF88439DEC40BB10A155E66F1EBB");
+	var lib=comp.getLibrary();
+	handleCompleteMenuOverlay({},comp);
+}
+
+window.moveToIndex = moveToIndex;
+window.moveToPreviousPage = moveToIndex;
+
+function moveToIndex()
+{
+    window.moveToPreviousPage = moveToIndex;
+    var comp=AdobeAn.getComposition("12AEEDEBAB1CB9459DF060C187F441CE");
+	var lib=comp.getLibrary();
+	handleComplete({},comp);
+}
+window.moveToContact = moveToContact;
+
+function moveToContact()
+{
+    window.moveToPreviousPage = moveToContact;
+    var comp=AdobeAn.getComposition("FDD19D50FD8CD746945C7605D70EB2CA");
+	var lib=comp.getLibrary();
+	createjs.MotionGuidePlugin.install();
+    handleCompleteContact({},comp);
+    
+    
+}
+
+window.moveToServices = moveToServices;
+
+function moveToServices()
+{
+    window.moveToPreviousPage = moveToServices;
+    window.currentServicePage = 1;
+    window.currentScrollDirection = "DOWN";
+    window.currentlyScrollingServices = false;
+    window.scrollingTimeout = 0;
+    var comp=AdobeAn.getComposition("FBE68AD27383D041BC742EB284B66EC5");
+	var lib=comp.getLibrary();
+	handleServicesComplete({},comp);
+    console.log($("canvas"));
+    $(function() {
+    $(window).swipe( {
+        //Generic swipe handler for all directions
+        swipe:function(event, direction, distance, duration, fingerCount, fingerData) {
+        console.log("You swiped " + direction );  
+        if(window.currentlyScrollingServices) 
+        {
+            clearTimeout(window.scrollingTimeout);
+            window.scrollingTimeout = setTimeout(enableScrolling,500);
+            return;
+
+        }
+        if(direction=="up") scrollDownServices();
+        if(direction=="down") scrollUpServices();
+        }
+    });
+
+    //Set some options later
+
+    });
+
+
+    $(window).bind('mousewheel DOMMouseScroll', function(event){
+        if(window.currentlyScrollingServices) 
+        {
+            clearTimeout(window.scrollingTimeout);
+            window.scrollingTimeout = setTimeout(enableScrolling,500);
+            return;
+
+        }
+        if (event.originalEvent.wheelDelta > 0 || event.originalEvent.detail < 0) {
+            // scroll up
+            window.currentScrollDirection = "UP";
+        }
+        else {
+            window.currentScrollDirection = "DOWN";
+        }
+        if(window.currentScrollDirection=="UP") scrollUpServices();
+        if(window.currentScrollDirection=="DOWN") scrollDownServices();
+
+        });
+}
+
+function enableScrolling()
+{
+    window.currentlyScrollingServices = false;
+}
+
+function scrollUpServices()
+{
+    console.log("Scroll Up");
+    if(window.currentlyScrollingServices) return;
+    window.currentScrollDirection = "UP";
+    window.currentServicePage--;
+    if(window.currentServicePage<1) window.currentServicePage = 3;
+    if(window.currentServicePage>3) window.currentServicePage = 1;
+    exportRoot.servicesContentMC.gotoAndPlay("Page"+window.currentServicePage);
+    exportRoot.servicesPaginationElement.gotoAndPlay("Page"+window.currentServicePage);
+    window.currentlyScrollingServices = true;
+    window.scrollingTimeout = setTimeout(enableScrolling,500);
+    
+}
+
+function scrollDownServices()
+{
+    console.log("Scroll Down");
+    if(window.currentlyScrollingServices) return;
+    window.currentScrollDirection = "DOWN";
+    window.currentServicePage++;
+    if(window.currentServicePage<1) window.currentServicePage = 3;
+    if(window.currentServicePage>3) window.currentServicePage = 1;
+    exportRoot.servicesContentMC.gotoAndPlay("Page"+window.currentServicePage+"Intro");
+    exportRoot.servicesPaginationElement.gotoAndPlay("Page"+window.currentServicePage);
+    window.currentlyScrollingServices = true;
+    window.scrollingTimeout = setTimeout(enableScrolling,500);
+}
+
+
+
+function resize()
+{
+    var menuButtonScale = 1;
+
+    if(canvas.width<760)
+    {
+        menuButtonScale = canvas.width/760;
+    }
+
+    if(canvas.height<1100)
+    {
+        if(menuButtonScale>(canvas.height/1100))
+        {
+            menuButtonScale = canvas.height/1100;
+        }
+        
+    }
+
+    canvas.width = $(window).width();
+    canvas.height = $(window).height();
+    //lert(canvas.width+"x"+canvas.height);
+    exportRoot.mainIndexAnimation.x = canvas.width/2;
+    exportRoot.mainIndexAnimation.y = canvas.height/2+30;
+    
+    console.log(exportRoot);
+
+    console.log("ScaleButton1: "+menuButtonScale)
+
+    
+
+    var scaleFactor = Math.min(window.innerHeight,window.innerWidth);
+			
+			if(scaleFactor*window.devicePixelRatio<600*window.devicePixelRatio)
+			{
+				scaleFactor = scaleFactor/(600*window.devicePixelRatio);
+				
+				if(scaleFactor<1)
+				{
+					exportRoot.mainIndexAnimation.scaleX = exportRoot.mainIndexAnimation.scaleY = scaleFactor*window.devicePixelRatio
+				}
+		
+			}
+			else
+			{
+                scaleFactor = 0.8*window.devicePixelRatio;
+                exportRoot.mainIndexAnimation.scaleX = exportRoot.mainIndexAnimation.scaleY = 0.8*window.devicePixelRatio;
+                //exportRoot.dropButton.dropButton.scaleX = exportRoot.dropButton.dropButton.scaleY = menuButtonScale*1.25
+                console.log(exportRoot);
+            }
+            
+                if(exportRoot.mainIndexAnimation.scaleX>1)
+			    {
+                    scaleFactor = 0.8;
+                    exportRoot.mainIndexAnimation.scaleX = exportRoot.mainIndexAnimation.scaleY = 0.8;
+                    //exportRoot.dropButton.dropButton.scaleX = exportRoot.dropButton.dropButton.scaleY = menuButtonScale*1.25;
+                     console.log(exportRoot);
+                }
+            
+			
+			
+            
+
+                exportRoot.servicesMenuButtonMC.scaleX = exportRoot.servicesMenuButtonMC.scaleY = menuButtonScale*1.25;
+                exportRoot.servicesMenuButtonMC.x = canvas.width-100*menuButtonScale;
+                exportRoot.servicesMenuButtonMC.y = -80*menuButtonScale;
+
+            exportRoot.menuBackgroundMC.x = canvas.width/2;
+	        exportRoot.menuBackgroundMC.y = canvas.height/2;
+}
+
+function resizeContact()
+{
+    var contactScale = 1;
+    canvas.width = $(window).width();
+    canvas.height = $(window).height();
+    //lert(canvas.width+"x"+canvas.height);
+    //exportRoot.menuOverlayMenuButtons.x = canvas.width/2;
+	//exportRoot.menuOverlayMenuButtons.y = canvas.height/2;
+	exportRoot.mainContactMC.x = canvas.width/2;
+    exportRoot.mainContactMC.y = canvas.height/2;
+
+    if(canvas.width<760)
+    {
+        contactScale = canvas.width/760;
+    }
+
+    if(canvas.height<1100)
+    {
+        if(contactScale>(canvas.height/1100))
+        {
+            contactScale = canvas.height/1100;
+        }
+        
+    }
+
+    exportRoot.contactMenuButtonMC.scaleX = exportRoot.contactMenuButtonMC.scaleY = contactScale*1.25;
+    exportRoot.contactMenuButtonMC.x = canvas.width-100*contactScale;
+    exportRoot.contactMenuButtonMC.y = -80*contactScale;
+
+    exportRoot.phileeContactLogo.scaleX = exportRoot.phileeContactLogo.scaleY = contactScale;
+    exportRoot.phileeContactLogo.x = 40;
+    exportRoot.phileeContactLogo.y = 90*contactScale;
+}
+
+function resizeServices()
+{
+    var serviceScale = 1;
+    canvas.width = $(window).width();
+    canvas.height = $(window).height();
+    //lert(canvas.width+"x"+canvas.height);
+    //exportRoot.menuOverlayMenuButtons.x = canvas.width/2;
+	//exportRoot.menuOverlayMenuButtons.y = canvas.height/2;
+	exportRoot.servicesContentMC.x = canvas.width/2;
+    exportRoot.servicesContentMC.y = canvas.height/2;
+
+    if(canvas.width<760)
+    {
+        serviceScale = canvas.width/760;
+    }
+
+    if(canvas.height<1100)
+    {
+        if(serviceScale>(canvas.height/1100))
+        {
+            serviceScale = canvas.height/1100;
+        }
+        
+    }
+
+    console.log("ScaleButton2: "+serviceScale)
+
+    exportRoot.servicesContentMC.scaleX = exportRoot.servicesContentMC.scaleY = serviceScale;
+
+    exportRoot.servicesPaginationElement.scaleX = exportRoot.servicesPaginationElement.scaleY = serviceScale;
+    exportRoot.servicesPaginationElement.x = canvas.width-50*serviceScale;
+    exportRoot.servicesPaginationElement.y = canvas.height/2;
+
+    exportRoot.servicesMenuButtonMC.scaleX = exportRoot.servicesMenuButtonMC.scaleY = serviceScale*1.25;
+    exportRoot.servicesMenuButtonMC.x = canvas.width-100*serviceScale;
+    exportRoot.servicesMenuButtonMC.y = -80*serviceScale;
+
+    exportRoot.phileeServicesLogo.scaleX = exportRoot.phileeServicesLogo.scaleY = serviceScale;
+    exportRoot.phileeServicesLogo.x = 40;
+    exportRoot.phileeServicesLogo.y = 90*serviceScale;
+
+    
+
+    exportRoot.menuBackgroundMC.x = canvas.width/2;
+	exportRoot.menuBackgroundMC.y = canvas.height/2;
+    
+    
+}
+
+function resizeMenuOverlay()
+{
+    canvas.width = $(window).width();
+    canvas.height = $(window).height();
+    //lert(canvas.width+"x"+canvas.height);
+    exportRoot.menuOverlayMenuButtons.x = canvas.width/2;
+	exportRoot.menuOverlayMenuButtons.y = canvas.height/2;
+	exportRoot.menuBackgroundMC.x = canvas.width/2;
+	exportRoot.menuBackgroundMC.y = canvas.height/2;
+	
+    
+	console.log(exportRoot);
+	
+	var backgroundScaleFactor = Math.max(1920/window.innerWidth,1080/window.innerHeight);
+
+	exportRoot.menuBackgroundMC.scaleX = exportRoot.menuBackgroundMC.scaleY = backgroundScaleFactor;
+
+
+    var scaleFactor = Math.min(window.innerHeight,window.innerWidth);
+			
+			if(scaleFactor*window.devicePixelRatio<600*window.devicePixelRatio)
+			{
+				scaleFactor = scaleFactor/(600*window.devicePixelRatio);
+				
+				if(scaleFactor<1)
+				{
+					exportRoot.menuOverlayMenuButtons.scaleX = exportRoot.menuOverlayMenuButtons.scaleY = scaleFactor*window.devicePixelRatio
+				}
+		
+			}
+			else
+			{
+                scaleFactor = 0.8*window.devicePixelRatio;
+                exportRoot.menuOverlayMenuButtons.scaleX = exportRoot.menuOverlayMenuButtons.scaleY = 0.8*window.devicePixelRatio;
+                //exportRoot.dropButton.scaleX = exportRoot.dropButton.scaleY = scaleFactor
+                //console.log(exportRoot);
+            }
+            
+                if(exportRoot.menuOverlayMenuButtons.scaleX>1)
+			    {
+                    scaleFactor = 0.8;
+                    exportRoot.menuOverlayMenuButtons.scaleX = exportRoot.menuOverlayMenuButtons.scaleY = 0.8;
+                    //exportRoot.dropButton.scaleX = exportRoot.dropButton.scaleY = scaleFactor;
+                     console.log(exportRoot);
+                }
+            
+			
+			
+            
+
+            //exportRoot.dropButton.x = canvas.width-100*scaleFactor;
+            //exportRoot.dropButton.y = -20*scaleFactor;
+}
+
+
+ 
+// Create stage and global references to stage objects.
+var stage = new createjs.Stage(canvas);
+ 
+// **Initialization** 
+// -----
+ 
+// `init()` sets up and runs the animation.
+function init(){
+    // Declare the method to run for each `tick`.
+    createjs.Ticker.addEventListener("tick", tick);
+    // Set FPS.
+    createjs.Ticker.setFPS(36);
+    // Use `requestAnimationFrame` if available else use `setTimeout`.
+    createjs.Ticker.useRAF = true; 
+    var comp=AdobeAn.getComposition("12AEEDEBAB1CB9459DF060C187F441CE");
+	var lib=comp.getLibrary();
+	handleComplete({},comp);
+}
+
+function handleCompleteContact(evt,comp)
+{
+    var lib=comp.getLibrary();
+	var ss=comp.getSpriteSheet();
+	exportRoot = new lib.contact();
+	stage = new lib.Stage(canvas);
+    stage.enableMouseOver();	
+    stage.addChild(exportRoot);
+	//Registers the "tick" event listener.
+	/*fnStartAnimation = function() {
+		stage.addChild(exportRoot);
+		createjs.Ticker.setFPS(24);
+		createjs.Ticker.addEventListener("tick", stage);
+    }*/
+    AdobeAn.compositionLoaded(lib.properties.id);
+
+    window.onresize = resizeContact;
+    resizeContact();
+	//fnStartAnimation();
+}
+
+function handleCompleteMenuOverlay(evt,comp) {
+	//This function is always called, irrespective of the content. You can use the variable "stage" after it is created in token create_stage.
+	var lib=comp.getLibrary();
+	var ss=comp.getSpriteSheet();
+	exportRoot = new lib.MenuOverlay();
+	stage = new lib.Stage(canvas);
+	stage.addChild(exportRoot);
+	stage.enableMouseOver();	
+
+    //setTimeout(moveToOverlayMenu,2000);
+
+    window.onresize = resizeMenuOverlay;
+    resizeMenuOverlay();
+}
+
+function handleServicesComplete(evt,comp)
+{
+    var lib=comp.getLibrary();
+	var ss=comp.getSpriteSheet();
+	exportRoot = new lib.Services();
+	stage = new lib.Stage(canvas);
+	stage.addChild(exportRoot);
+    stage.enableMouseOver();	
+    
+    window.onresize = resizeServices;
+    resizeServices();
+
+    
+}
+
+function handleComplete(evt,comp) {
+	//This function is always called, irrespective of the content. You can use the variable "stage" after it is created in token create_stage.
+	var lib=comp.getLibrary();
+	var ss=comp.getSpriteSheet();
+	exportRoot = new lib.index();
+	stage = new lib.Stage(canvas);
+	stage.addChild(exportRoot);
+    stage.enableMouseOver();	
+    
+    window.onresize = resize
+    resize();
+
+    //setTimeout(moveToOverlayMenu,2000);
+}
+ 
+// **`tick` function**
+// -----
+ 
+// In this example, the `mtext` object handles its own _ticking_
+// which executes during the call to `stage.update`.
+// Alternatively, the `grue` _ticking_ is handled in this `tick` method
+// but it too could be moved to the object.
+function tick(event){
+    //grue.x = stage.mouseX;
+    //grue.y = stage.mouseY;
+    // _ticks_ all descendants of the stage and draws to canvas.
+    // Parameters passed to `update` will be passed to descendants.
+    stage.update(event);
+}
+
+// Run the animation here or add `init` to onload parameter of `body`.
+init();
+
+window.onresize = resize;
+resize();
+
+</script>
