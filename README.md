@@ -1,1 +1,1 @@
-# createjs_profile
+# create.js example
